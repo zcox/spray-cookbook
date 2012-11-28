@@ -40,6 +40,10 @@ class BrandSearchService extends Actor {
   }
 }
 
+trait BrandSearchService2 {
+  def findBrands(query: String): Future[FoundBrands]
+}
+
 class BrandService extends Actor {
   def receive = {
     //TODO validations: name is unique, email & urlName well-formed, etc
