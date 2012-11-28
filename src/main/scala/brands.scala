@@ -18,13 +18,10 @@ case class FoundBrands(brands: Seq[Brand])
 case class CreateBrand(name: String, email: String, urlName: String)
 case class CreatedBrand(brand: Brand)
 
+/** Allows us to marshall a Brand or a Seq[Brand]. */
 object BrandJsonProtocol extends DefaultJsonProtocol {
-  /** Allows us to marshall a Brand or a Seq[Brand]. */
   implicit val BrandFormat = jsonFormat4(Brand)
 }
-
-import BrandJsonProtocol._
-import spray.httpx.SprayJsonSupport._
 
 object Brands {
   val starbucks = Brand("b1", "Starbucks", "starbucks@pongr.com", "Starbucks")
@@ -34,16 +31,19 @@ object Brands {
   val all = Seq(starbucks, samsClub, pepsi, square)
 }
 
+/** Complex search logic that we don't want in BrandHttpService goes here. */
 class BrandSearchService extends Actor {
   def receive = {
     case FindBrands(query) => sender ! FoundBrands(Brands.all.filter(_.name.toLowerCase.startsWith(query.toLowerCase)))
   }
 }
 
+/** Example of using a trait that returns a Future, instead of using an actor. */
 trait BrandSearchService2 {
   def findBrands(query: String): Future[FoundBrands]
 }
 
+/** Complex brand CRUD logic that we don't want in BrandHttpService goes here. */
 class BrandService extends Actor {
   def receive = {
     //TODO validations: name is unique, email & urlName well-formed, etc
@@ -56,6 +56,9 @@ class BrandService extends Actor {
   * POST /brands name=New%20Brand&email=newbrand%40.com&urlName=NewBrand
   */
 trait BrandHttpService extends HttpService {
+  import BrandJsonProtocol._
+  import spray.httpx.SprayJsonSupport._
+  
   def brandSearchService: ActorRef
   def brandService: ActorRef
   implicit val timeout = Timeout(1 second)
