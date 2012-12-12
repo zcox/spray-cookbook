@@ -40,7 +40,12 @@ class BrandSearchService extends Actor {
 
 /** Example of using a trait that returns a Future, instead of using an actor. */
 trait BrandSearchService2 {
-  def findBrands(query: String): Future[FoundBrands]
+  def findBrands(query: String)(implicit context: ExecutionContext): Future[FoundBrands]
+}
+
+class BrandSearchService2Impl extends BrandSearchService2 {
+  def findBrands(query: String)(implicit context: ExecutionContext): Future[FoundBrands] = 
+    Future { FoundBrands(Brands.all.filter(_.name.toLowerCase.startsWith(query.toLowerCase))) }
 }
 
 /** Complex brand CRUD logic that we don't want in BrandHttpService goes here. */
@@ -53,7 +58,7 @@ class BrandService extends Actor {
 
 /** Example of the http service deferring all logic to other actors, completing with futures, and marshalling domain objects to json. 
   * GET /brands?query=s
-  * POST /brands name=New%20Brand&email=newbrand%40.com&urlName=NewBrand
+  * POST /brands name=New%20Brand&email=newbrand%40pongr.com&urlName=NewBrand
   */
 trait BrandHttpService extends HttpService {
   import BrandJsonProtocol._
@@ -82,11 +87,11 @@ trait BrandHttpService extends HttpService {
     }
 }
 
-object BrandServiceMain extends SprayCanMain {
-  val messageHandler = SingletonHandler(system.actorOf(Props(new Actor with BrandHttpService {
+object BrandServiceMain extends App with SprayCanMain {
+  newHttpServer(SingletonHandler(system.actorOf(Props(new Actor with BrandHttpService {
     def actorRefFactory = context
     def receive = runRoute(route)
     val brandSearchService = system.actorOf(Props[BrandSearchService])
     val brandService = system.actorOf(Props[BrandService])
-  }), "brand-http-service"))
+  }), "brand-http-service"))) ! Bind("localhost", 5555)
 }

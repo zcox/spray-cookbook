@@ -5,6 +5,8 @@ import akka.actor._
 import akka.testkit.TestProbe
 import spray.testkit.Specs2RouteTest
 import spray.routing._
+import spray.http._
+import spray.http.HttpHeaders._
 import spray.http.StatusCodes._
 import spray.http.MediaTypes._
 import BrandJsonProtocol._
@@ -28,7 +30,7 @@ class BrandHttpServiceSpec extends Specification with Specs2RouteTest with Brand
   val brandService = probe2.ref*/
 
   val brandSearchService = system.actorOf(Props[TestBrandSearchService])
-  val brandService: ActorRef = null
+  val brandService: ActorRef = system.actorOf(Props[BrandService])
 
   "The Brand http service" should {
     "handle brand searches" in {
@@ -52,6 +54,22 @@ class BrandHttpServiceSpec extends Specification with Specs2RouteTest with Brand
              |  "email": "starbucks@pongr.com",
              |  "urlName": "Starbucks"
              |}]""".stripMargin
+        }
+      }
+    }
+
+    "handle brand operations" in {
+      "create a brand" in {
+        Post("/brands", FormData(Map("name" -> "New Brand", "email" -> "newbrand@pongr.com", "urlName" -> "NewBrand"))) ~> addHeader(`Content-Type`(`application/x-www-form-urlencoded`)) ~> route ~> check {
+          handled must beTrue
+          mediaType must_== `application/json`
+          /*entityAs[String] must_== 
+          """|[{
+             |  "id": "b1",
+             |  "name": "Starbucks",
+             |  "email": "starbucks@pongr.com",
+             |  "urlName": "Starbucks"
+             |}]""".stripMargin*/
         }
       }
     }

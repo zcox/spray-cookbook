@@ -21,21 +21,21 @@ class RawServiceActor extends Actor with ActorLogging {
     case HttpRequest(GET, "/ping", _, _, _) => sender ! HttpResponse(entity = "PONG")
     case HttpRequest(GET, "/pong", _, _, _) => sender ! HttpResponse(entity = "WAT")
     case HttpRequest(GET, "/pongr", _, _, _) => sender ! HttpResponse(entity = "w00t")
-    case HttpRequest(_, _, _, _, _) => sender ! HttpResponse(status = NotFound, entity = "Not Found")
+    case HttpRequest(_, _, _, _, _) => sender ! HttpResponse(status = NotFound, entity = "This is not the resource you are looking for...")
   }
 }
 
 /** Uses one RawServiceActor instance to handle all requests. */
-object RawServiceSingletonMain extends StatLoggingMain {
-  val messageHandler = SingletonHandler(system.actorOf(Props[RawServiceActor], "raw-service"))
+object RawServiceSingletonMain extends App with SprayCanMain {
+  newHttpServer(SingletonHandler(system.actorOf(Props[RawServiceActor], "raw-service"))) ! Bind("localhost", 5555)
 }
 
 /** Uses one RawServiceActor instance per connection. */
-object RawServicePerConnectionMain extends StatLoggingMain {
-  val messageHandler = PerConnectionHandler(pc => pc.connectionActorContext.actorOf(Props[RawServiceActor], "raw-service"))
+object RawServicePerConnectionMain extends App with SprayCanMain {
+  newHttpServer(PerConnectionHandler(pc => pc.connectionActorContext.actorOf(Props[RawServiceActor], "raw-service"))) ! Bind("localhost", 5555)
 }
 
 /** Uses one RawServiceActor instance per request. */
-object RawServicePerMessageMain extends SprayCanMain {
-  val messageHandler = PerMessageHandler(pc => pc.connectionActorContext.actorOf(Props[RawServiceActor], "raw-service"))
+object RawServicePerMessageMain extends App with SprayCanMain {
+  newHttpServer(PerMessageHandler(pc => pc.connectionActorContext.actorOf(Props[RawServiceActor], "raw-service"))) ! Bind("localhost", 5555)
 }

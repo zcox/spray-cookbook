@@ -19,7 +19,9 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %  "akka-testkit"     % Version.akka % "test",
   "org.clapper"       %% "grizzled-slf4j"   % "0.6.9",
   "ch.qos.logback"    %  "logback-classic"  % "1.0.6",
-  "org.specs2"        %% "specs2"           % "1.12.2" % "test" //same version as spray-testkit
+  "org.specs2"        %% "specs2"           % "1.12.3" % "test" //same version as spray-testkit
 )
 
 scalacOptions += "-Ydependent-method-types" //http://spray.io/documentation/spray-routing/installation/
+
+seq(Revolver.settings: _*)
